@@ -1,28 +1,19 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, FlatList, Text, Switch, StyleSheet } from 'react-native';
+import { View, TextInput, Button, FlatList, Text, Switch, StyleSheet} from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 
 const Stack = createStackNavigator();
 
 const ToDoApp = () => {
-  const [tasks, setTasks] = useState([]);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-
-  const addTask = () => {
-    if (newTaskTitle.trim() !== '') {
-      setTasks([...tasks, { title: newTaskTitle, status: false }]);
-      setNewTaskTitle('');
-    }
-  };
-
   return (
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen
           name="Home"
-          component={HomeScreen}
+          component={ToDoHomeScreen}
           options={{
             title: 'ToDo App',
             headerStyle: {
@@ -35,30 +26,35 @@ const ToDoApp = () => {
           }}
         />
       </Stack.Navigator>
+      <Toast/> 
     </NavigationContainer>
   );
 };
 
-const HomeScreen = () => {
+const ToDoHomeScreen = () => {
   const [tasks, setTasks] = useState([]);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [taskTitle, setTaskTitle] = useState('');
 
   const addTask = () => {
-    if (newTaskTitle.trim() !== '') {
-      setTasks([...tasks, { title: newTaskTitle, status: false }]);
-      setNewTaskTitle('');
+    if (taskTitle.trim() !== '') {
+      setTasks([...tasks, { id: Date.now().toString(), title: taskTitle, status: false }]);
+      setTaskTitle('');
+      Toast.show({ type: 'success', text1: 'Task added successfully!' });
+
     }
   };
+  
 
   return (
     <View style={styles.container}>
       <TextInput
-        style={styles.input}
+        style={styles.taskInput}
         placeholder="Enter Your Task"
-        value={newTaskTitle}
-        onChangeText={setNewTaskTitle}
+        value={taskTitle}
+        onChangeText={setTaskTitle}
+        autoFocus={true}
       />
-      <Button title="Add Task" onPress={addTask} disabled={!newTaskTitle.trim()} />
+      <Button title="Add Task" onPress={addTask} disabled={!taskTitle.trim()} />
 
       <FlatList
         data={tasks}
@@ -78,7 +74,7 @@ const HomeScreen = () => {
 
           />
         )}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item) => item.id}
       />
     </View>
   );
@@ -87,16 +83,16 @@ const HomeScreen = () => {
 const TaskItem = ({ task, onStatusChange, onDelete }) => (
   <View style={styles.taskItem}>
     <View style={styles.taskStatus}>
-      <Text style={styles.taskText}>
+      <Text style={styles.titleTask}>
         {task.title}</Text>
       <Text style={{ color: task.status ? 'green' : 'red' }}>-
         {task.status ? 'Done' : 'Due'}
       </Text>
     </View>
-    <View style={styles.statusDeleteContainer}>
+    <View style={styles.statusDelete}>
       <Switch value={task.status} onValueChange={onStatusChange} />
       <Button title="Delete" onPress={onDelete} color="#FE0034" />
-    </View>
+     </View>
   </View>
 );
 
@@ -105,13 +101,15 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  input: {
+
+  taskInput: {
     height: 40,
     borderColor: 'gray',
     borderWidth: 0.5,
     marginBottom: 10,
     paddingLeft: 10,
   },
+
   taskItem: {
     flexDirection: 'column',
     justifyContent: 'space-between',
@@ -123,16 +121,18 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ccc',
     
   },
+
   taskStatus: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center'
   },
-  taskText: {
+  titleTask: {
     fontSize: 18,
     fontWeight: 'bold'
   },
-  statusDeleteContainer: {
+
+  statusDelete: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
